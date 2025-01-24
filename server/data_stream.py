@@ -82,6 +82,7 @@ def _run(name, operations_callback, stream_stop_event=None):
         if not isinstance(commit, models.ComAtprotoSyncSubscribeRepos.Commit):
             return
 
+
         # update stored state every ~1k events
         if commit.seq % 1000 == 0:  # lower value could lead to performance issues
             logger.debug(f'Updated cursor for {name} to {commit.seq}')
@@ -94,3 +95,5 @@ def _run(name, operations_callback, stream_stop_event=None):
         operations_callback(_get_ops_by_type(commit))
 
     client.start(on_message_handler)
+
+

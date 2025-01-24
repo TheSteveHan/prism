@@ -30,19 +30,18 @@ def operations_callback(ops: defaultdict) -> None:
         )
 
         # only python-related posts
-        if 'python' in record.text.lower():
-            reply_root = reply_parent = None
-            if record.reply:
-                reply_root = record.reply.root.uri
-                reply_parent = record.reply.parent.uri
+        reply_root = reply_parent = None
+        if record.reply:
+            reply_root = record.reply.root.uri
+            reply_parent = record.reply.parent.uri
 
-            post_dict = {
-                'uri': created_post['uri'],
-                'cid': created_post['cid'],
-                'reply_parent': reply_parent,
-                'reply_root': reply_root,
-            }
-            posts_to_create.append(post_dict)
+        post_dict = {
+            'uri': created_post['uri'],
+            'cid': created_post['cid'],
+            'reply_parent': reply_parent,
+            'reply_root': reply_root,
+        }
+        posts_to_create.append(post_dict)
 
     posts_to_delete = ops[models.ids.AppBskyFeedPost]['deleted']
     if posts_to_delete:
