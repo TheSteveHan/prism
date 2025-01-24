@@ -8,6 +8,8 @@ atproto = "*"
 flask = "*"
 peewee = "*"
 python-dotenv = "*"
+pandas = "*"
+pyarrow = "*"
 
 [dev-packages]
 

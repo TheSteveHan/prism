@@ -40,6 +40,7 @@ def operations_callback(ops: defaultdict) -> None:
             'cid': created_post['cid'],
             'reply_parent': reply_parent,
             'reply_root': reply_root,
+            'text': record.text,
         }
         posts_to_create.append(post_dict)
 
