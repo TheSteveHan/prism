@@ -8,8 +8,12 @@ atproto = "*"
 flask = "*"
 peewee = "*"
 python-dotenv = "*"
-pandas = "*"
+pandas = "<2.2.2"
 pyarrow = "*"
+fasttext = "*"
+scikit-learn = "*"
+sentence-transformers = "*"
+faiss-cpu = "*"
 
 [dev-packages]
 

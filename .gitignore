@@ -169,4 +169,8 @@ cython_debug/
 
 *.sw*
 *.parquet
-
+*.json
+*.vec
+*.bin
+*.zip
+*.txt
