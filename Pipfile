@@ -14,6 +14,7 @@ fasttext = "*"
 scikit-learn = "*"
 sentence-transformers = "*"
 faiss-cpu = "*"
+nltk = "*"
 
 [dev-packages]
 
