@@ -6,6 +6,7 @@ from .settings import app, db
 from .database import Post, Label
 from .post_fetcher import fetch_posts_for_label, post_fetching_worker
 from flask import jsonify, request
+from .state import SERVER_STATE
 
 def start_streamer():
     from server import data_stream
@@ -14,6 +15,7 @@ def start_streamer():
     stream_thread = threading.Thread(
         target=data_stream.run, args=('test', operations_callback, stream_stop_event,)
     )
+    stream_thread.daemon = True
     stream_thread.start()
 
 
@@ -24,6 +26,10 @@ def start_streamer():
 
 
     signal.signal(signal.SIGINT, sigint_handler)
+
+@app.route('/api/server-state', methods=['GET'])
+def get_server_state():
+    return jsonify(SERVER_STATE)
 
 @app.route('/api/posts/labeling', methods=['GET'])
 def get_posts_with_lowest_labels():
@@ -79,6 +85,9 @@ def bulk_add_labels():
         return jsonify({"error": str(e)}), 500
     return jsonify(result), 200
 
+
+if os.getenv("RUN_STREAMER"):
+    start_streamer()
 
 if not os.getenv("SKIP_WORKERS"):
     all_workers = [post_fetching_worker]

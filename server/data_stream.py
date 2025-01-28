@@ -6,6 +6,7 @@ from atproto.exceptions import FirehoseError
 
 from server.database import SubscriptionState
 from server.logger import logger
+from server.settings import db, app
 
 _INTERESTED_RECORDS = {
     models.AppBskyFeedLike: models.ids.AppBskyFeedLike,
@@ -51,17 +52,20 @@ def _get_ops_by_type(commit: models.ComAtprotoSyncSubscribeRepos.Commit) -> defa
 
 
 def run(name, operations_callback, stream_stop_event=None):
-    while stream_stop_event is None or not stream_stop_event.is_set():
-        try:
-            _run(name, operations_callback, stream_stop_event)
-        except FirehoseError as e:
-            if logger.level == logging.DEBUG:
-                raise e
-            logger.error(f'Firehose error: {e}. Reconnecting to the firehose.')
+    print("running stream")
+    with app.app_context():
+        while stream_stop_event is None or not stream_stop_event.is_set():
+            try:
+                _run(name, operations_callback, stream_stop_event)
+            except FirehoseError as e:
+                logger.error(f'Firehose error: {e}. Reconnecting to the firehose.')
+            except Exception as e:
+                logger.error(e)
+                pass
 
 
 def _run(name, operations_callback, stream_stop_event=None):
-    state = SubscriptionState.get_or_none(SubscriptionState.service == name)
+    state = SubscriptionState.query.filter(SubscriptionState.service == name).first()
 
     params = None
     if state:
@@ -70,7 +74,8 @@ def _run(name, operations_callback, stream_stop_event=None):
     client = FirehoseSubscribeReposClient(params)
 
     if not state:
-        SubscriptionState.create(service=name, cursor=0)
+        db.session.add(SubscriptionState(service=name, cursor=0))
+        db.session.commit()
 
     def on_message_handler(message: firehose_models.MessageFrame) -> None:
         # stop on next message if requested
@@ -87,7 +92,9 @@ def _run(name, operations_callback, stream_stop_event=None):
         if commit.seq % 1000 == 0:  # lower value could lead to performance issues
             logger.debug(f'Updated cursor for {name} to {commit.seq}')
             client.update_params(models.ComAtprotoSyncSubscribeRepos.Params(cursor=commit.seq))
-            SubscriptionState.update(cursor=commit.seq).where(SubscriptionState.service == name).execute()
+            SubscriptionState.query.filter_by(service=name).update({'cursor':commit.seq})
+            db.session.commit()
+
 
         if not commit.blocks:
             return

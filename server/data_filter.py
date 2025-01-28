@@ -4,7 +4,7 @@ from atproto import models
 
 from server.logger import logger
 from server.database import db, Post
-
+from server.state import SERVER_STATE
 
 def operations_callback(ops: defaultdict) -> None:
     # Here we can filter, process, run ML classification, etc.
@@ -22,14 +22,16 @@ def operations_callback(ops: defaultdict) -> None:
         # print all texts just as demo that data stream works
         post_with_images = isinstance(record.embed, models.AppBskyEmbedImages.Main)
         inlined_text = record.text.replace('\n', ' ')
-        logger.debug(
+        '''
+        print(
             f'NEW POST '
             f'[CREATED_AT={record.created_at}]'
             f'[AUTHOR={author}]'
             f'[WITH_IMAGE={post_with_images}]'
             f': {inlined_text}'
+            ,end="\r"
         )
-
+        '''
         # only python-related posts
         reply_root = reply_parent = None
         if record.reply:
@@ -45,14 +47,8 @@ def operations_callback(ops: defaultdict) -> None:
         }
         posts_to_create.append(post_dict)
 
-    posts_to_delete = ops[models.ids.AppBskyFeedPost]['deleted']
-    if posts_to_delete:
-        post_uris_to_delete = [post['uri'] for post in posts_to_delete]
-        Post.delete().where(Post.uri.in_(post_uris_to_delete))
-        logger.debug(f'Deleted from feed: {len(post_uris_to_delete)}')
-
     if posts_to_create:
-        with db.atomic():
-            for post_dict in posts_to_create:
-                Post.create(**post_dict)
-        logger.debug(f'Added to feed: {len(posts_to_create)}')
+        db.session.bulk_insert_mappings(Post, posts_to_create)
+        db.session.commit()
+        SERVER_STATE['TOTAL_ENTRIES'] += len(posts_to_create)
+        #logger.debug(f'Added to feed: {len(posts_to_create)}')

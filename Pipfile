@@ -17,6 +17,7 @@ nltk = "*"
 flask-migrate = "*"
 pytest = "*"
 emoji = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 

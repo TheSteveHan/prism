@@ -110,7 +110,7 @@ def post_fetching_worker(max_itr =-1):
                 results_ready[label_type].put(True)
                 print("notified result ready")
             # limit max fetch frequency
-            if (now - last_fetch).total_seconds() > 2 or fetched_samples < 200:
+            if ((now - last_fetch).total_seconds() > 2 and fetched_samples < 500) or (fetched_samples<200):
                 print('fetching new samples')
                 results = query_for_low_conf_posts(label_type, limit)
                 fetched_samples += len(results)

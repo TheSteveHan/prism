@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
 
-DB_URL = os.getenv("DB_URL", 'sqlite:///feed_database.db')
+DB_URL = os.getenv("DB_URL", 'postgresql+psycopg2://postgres:postgres@localhost:5432/prism')
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
