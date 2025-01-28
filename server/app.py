@@ -1,90 +1,89 @@
+import os
 import sys
 import signal
 import threading
+from .settings import app, db
+from .database import Post, Label
+from .post_fetcher import fetch_posts_for_label, post_fetching_worker
+from flask import jsonify, request
 
-from server import config
-from server import data_stream
-
-from flask import Flask, jsonify, request
-
-from server.algos import algos
-from server.data_filter import operations_callback
-
-app = Flask(__name__)
-
-stream_stop_event = threading.Event()
-stream_thread = threading.Thread(
-    target=data_stream.run, args=(config.SERVICE_DID, operations_callback, stream_stop_event,)
-)
-stream_thread.start()
+def start_streamer():
+    from server import data_stream
+    from server.data_filter import operations_callback
+    stream_stop_event = threading.Event()
+    stream_thread = threading.Thread(
+        target=data_stream.run, args=('test', operations_callback, stream_stop_event,)
+    )
+    stream_thread.start()
 
 
-def sigint_handler(*_):
-    print('Stopping data stream...')
-    stream_stop_event.set()
-    sys.exit(0)
+    def sigint_handler(*_):
+        print('Stopping data stream...')
+        #stream_stop_event.set()
+        sys.exit(0)
 
 
-signal.signal(signal.SIGINT, sigint_handler)
+    signal.signal(signal.SIGINT, sigint_handler)
 
+@app.route('/api/posts/labeling', methods=['GET'])
+def get_posts_with_lowest_labels():
+    label_type = request.args.get('label_type', type=int)
+    limit = request.args.get('limit', type=int, default=100)
 
-@app.route('/')
-def index():
-    return 'ATProto Feed Generator powered by The AT Protocol SDK for Python (https://github.com/MarshalX/atproto).'
+    if label_type is None:
+        return jsonify({"error": "label_type parameter is required."}), 400
+    result = fetch_posts_for_label(label_type, limit)
+    return jsonify(result), 200
 
+@app.route('/api/labels/', methods=['POST'])
+def bulk_add_labels():
+    label_type = request.args.get('label_type', type=int)
 
-@app.route('/.well-known/did.json', methods=['GET'])
-def did_json():
-    if not config.SERVICE_DID.endswith(config.HOSTNAME):
-        return '', 404
+    if label_type is None:
+        return jsonify({"error": "label_type parameter is required."}), 400
 
-    return jsonify({
-        '@context': ['https://www.w3.org/ns/did/v1'],
-        'id': config.SERVICE_DID,
-        'service': [
-            {
-                'id': '#bsky_fg',
-                'type': 'BskyFeedGenerator',
-                'serviceEndpoint': f'https://{config.HOSTNAME}'
-            }
-        ]
-    })
+    # Get the list of labels from the JSON body
+    labels_data = request.get_json()
 
+    if not labels_data:
+        return jsonify({"error": "No label data provided."}), 400
 
-@app.route('/xrpc/app.bsky.feed.describeFeedGenerator', methods=['GET'])
-def describe_feed_generator():
-    feeds = [{'uri': uri} for uri in algos.keys()]
-    response = {
-        'encoding': 'application/json',
-        'body': {
-            'did': config.SERVICE_DID,
-            'feeds': feeds
-        }
-    }
-    return jsonify(response)
+    # List to hold the new label instances to be added
+    new_labels = []
 
+    for label_info in labels_data:
+        # Ensure each label has necessary fields
+        if 'confidence' not in label_info or 'value' not in label_info or 'post_id' not in label_info:
+            return jsonify({"error": "Missing required fields in one of the labels."}), 400
 
-@app.route('/xrpc/app.bsky.feed.getFeedSkeleton', methods=['GET'])
-def get_feed_skeleton():
-    feed = request.args.get('feed', default=None, type=str)
-    algo = algos.get(feed)
-    if not algo:
-        return 'Unsupported algorithm', 400
-
-    # Example of how to check auth if giving user-specific results:
-    """
-    from server.auth import AuthorizationError, validate_auth
-    try:
-        requester_did = validate_auth(request)
-    except AuthorizationError:
-        return 'Unauthorized', 401
-    """
+        # Create the label and append to the list
+        new_label = Label(
+            label_type=label_type,
+            confidence=label_info['confidence'],
+            value=label_info['value'],
+            post_id=label_info['post_id'],
+            src=label_info.get('src', 'default')  # Default source if not provided
+        )
+        new_labels.append(new_label)
 
     try:
-        cursor = request.args.get('cursor', default=None, type=str)
-        limit = request.args.get('limit', default=20, type=int)
-        body = algo(cursor, limit)
-    except ValueError:
-        return 'Malformed cursor', 400
+        # Add all new labels to the session and commit
+        db.session.add_all(new_labels)
+        db.session.commit()
 
-    return jsonify(body)
+        return jsonify({"message": "Labels added successfully.", "count": len(new_labels)}), 201
+
+    except Exception as e:
+        print(e)
+        db.session.rollback()  # In case of error, rollback transaction
+        return jsonify({"error": str(e)}), 500
+    return jsonify(result), 200
+
+
+if not os.getenv("SKIP_WORKERS"):
+    all_workers = [post_fetching_worker]
+
+    for worker in all_workers:
+        t = threading.Thread(target=worker)
+        t.daemon=True
+        t.start()

@@ -1,29 +1,46 @@
 from datetime import datetime
+from enum import IntEnum
+from .settings import db
 
-import peewee
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    uri = db.Column(db.String, index=True, nullable=False)
+    cid = db.Column(db.String, nullable=False)
+    reply_parent = db.Column(db.String, nullable=True, default=None)
+    reply_root = db.Column(db.String, nullable=True, default=None)
+    indexed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    text = db.Column(db.String, nullable=False)
 
-db = peewee.SqliteDatabase('feed_database.db')
-
-
-class BaseModel(peewee.Model):
-    class Meta:
-        database = db
-
-
-class Post(BaseModel):
-    uri = peewee.CharField(index=True)
-    cid = peewee.CharField()
-    reply_parent = peewee.CharField(null=True, default=None)
-    reply_root = peewee.CharField(null=True, default=None)
-    indexed_at = peewee.DateTimeField(default=datetime.utcnow)
-    text = peewee.CharField(null=False)
+    def __repr__(self):
+        return f"<Post {self.id} - {self.uri}>"
 
 
-class SubscriptionState(BaseModel):
-    service = peewee.CharField(unique=True)
-    cursor = peewee.BigIntegerField()
+class SubscriptionState(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    service = db.Column(db.String, unique=True, nullable=False)
+    cursor = db.Column(db.BigInteger, nullable=False)
 
+    def __repr__(self):
+        return f"<SubscriptionState {self.service} - {self.cursor}>"
 
-if db.is_closed():
-    db.connect()
-    db.create_tables([Post, SubscriptionState])
+class LabelType(IntEnum):
+    EMOTION_28 = 0
+    EMOTION_AGG = 1
+    INTELLECTUAL = 2
+    ACTIONABLE = 3
+
+class Label(db.Model):
+    id = db.Column(db.BigInteger().with_variant(db.Integer, "sqlite"), primary_key=True)
+    label_type = db.Column(db.Integer, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    src = db.Column(db.String, nullable=False)
+    value = db.Column(db.Float, nullable=False)
+    confidence = db.Column(db.Float, nullable=False)
+    post_id = db.Column(db.BigInteger, db.ForeignKey('post.id'), nullable=False)
+
+    post = db.relationship('Post', backref='labels')
+
+    __table_args__ = (
+        db.Index('idx_label_type_confidence_post_id', 'label_type', 'confidence', 'post_id'),
+    )
+
