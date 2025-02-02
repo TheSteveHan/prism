@@ -1,5 +1,5 @@
 #!/bin/bash
-RUN_STREAMER=1 flask run --host 0.0.0.0 #python -m server.main
+RUN_STREAMER=1 flask run --host 0.0.0.0 --port 8008 --with-threads #python -m server.main
 exit
 
 # Variables

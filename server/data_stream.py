@@ -88,8 +88,8 @@ def _run(name, operations_callback, stream_stop_event=None):
             return
 
 
-        # update stored state every ~1k events
-        if commit.seq % 1000 == 0:  # lower value could lead to performance issues
+        # update stored state every ~10k events
+        if commit.seq % 10000 == 0:  # lower value could lead to performance issues
             logger.debug(f'Updated cursor for {name} to {commit.seq}')
             client.update_params(models.ComAtprotoSyncSubscribeRepos.Params(cursor=commit.seq))
             SubscriptionState.query.filter_by(service=name).update({'cursor':commit.seq})

@@ -4,6 +4,8 @@ import fasttext
 import requests
 from utils import preprocess_text
 import time
+import queue
+import threading
 
 go_emotions_classes = [
     "admiration",
@@ -86,21 +88,65 @@ def debug_labels(data, post):
 
 
 
-SERVER_URL=os.getenv("SEVER_URL", "http://localhost:8008")
+SERVER_URL=os.getenv("SERVER_URL", "http://localhost:8008")
+print(f"Connecting to {SERVER_URL}")
 model = fasttext.load_model("/tmp/go_emotions_model.bin")
 print("loaded model")
+
+fetch_queue = queue.Queue(maxsize=2)
+send_queue = queue.Queue()
+
+def fetch_worker():
+    print("started fetch worker")
+    while True:
+        print("sending request")
+        try:
+            res = requests.get(SERVER_URL+"/api/posts/labeling?label_type=1", timeout=2)
+            posts = res.json()
+            posts = [
+                p
+                for p in posts
+                if p['avg_confidence'] == 0
+            ]
+            if not posts:
+                print(f"No new post found")
+                time.sleep(1)
+                continue
+            print(f"Fetched {len(posts)} posts")
+            fetch_queue.put(posts)
+        except requests.exceptions.ConnectionError:
+            time.sleep(1)
+        except Exception as e:
+            print(e)
+
+
+def send_worker():
+    print("started send worker")
+    while True:
+        all_results = send_queue.get()
+        try:
+            res = requests.post(SERVER_URL+"/api/labels/?label_type=1", json=all_results)
+            print(f"Sent {len(all_results)} labels")
+        except requests.exceptions.ConnectionError:
+            time.sleep(1)
+        except Exception as e:
+            print(e)
+        send_queue.task_done()
+
+for worker in [fetch_worker, send_worker]:
+    t = threading.Thread(target=worker)
+    t.daemon = True
+    t.start()
+
 while True:
-    try:
-        res = requests.get(SERVER_URL+"/api/posts/labeling?label_type=1")
-        posts = res.json()
-        all_results = []
-        for post in posts:
-            res = model.predict(preprocess_text(post['text']), k=-1)
-            data = convert_result_to_labels(post['post_id'], res)
-            all_results += data
-            debug_labels(data, post)
-        print(f"generated {len(all_results)}")
-        res = requests.post(SERVER_URL+"/api/labels/?label_type=1", json=all_results)
-    except requests.exceptions.ConnectionError:
-        time.sleep(1)
-        pass
+    posts = fetch_queue.get()
+    fetch_queue.task_done()
+    print(f"Got {len(posts)} posts")
+    all_results = []
+    for post in posts:
+        res = model.predict(preprocess_text(post['text']), k=-1)
+        data = convert_result_to_labels(post['post_id'], res)
+        all_results += data
+        #debug_labels(data, post)
+    print(f"generated {len(all_results)}")
+    #send_queue.put(all_results)

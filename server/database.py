@@ -9,6 +9,12 @@ class Post(db.Model):
     reply_parent = db.Column(db.String, nullable=True, default=None)
     reply_root = db.Column(db.String, nullable=True, default=None)
     indexed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    e_score = db.Column(db.Float, nullable=True, default=None, index=True)
+    e_conf = db.Column(db.Float, nullable=True, default=None, index=True)
+    i_score = db.Column(db.Float, nullable=True, default=None, index=True)
+    i_conf = db.Column(db.Float, nullable=True, default=None, index=True)
+    a_score = db.Column(db.Float, nullable=True, default=None, index=True)
+    a_conf = db.Column(db.Float, nullable=True, default=None, index=True)
     text = db.Column(db.String, nullable=False)
 
     def __repr__(self):

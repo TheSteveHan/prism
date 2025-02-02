@@ -2,6 +2,9 @@ from sqlalchemy import MetaData
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_compress import Compress
+from flask_caching import Cache
+
 import os
 
 DB_URL = os.getenv("DB_URL", 'postgresql+psycopg2://postgres:postgres@localhost:5432/prism')
@@ -9,6 +12,11 @@ DB_URL = os.getenv("DB_URL", 'postgresql+psycopg2://postgres:postgres@localhost:
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# disable default compression of all eligible requests
+app.config["COMPRESS_REGISTER"] = False
+app.config["CACHE_TYPE"] = "SimpleCache"
+app.config["CACHE_DEFAULT_TIMEOUT"] = 60
+
 
 metadata = MetaData(
     naming_convention={
@@ -22,3 +30,7 @@ metadata = MetaData(
 
 db = SQLAlchemy(app, metadata=metadata)
 migrate = Migrate(app, db)
+compress = Compress()
+compress.init_app(app)
+cache = Cache(app)
+

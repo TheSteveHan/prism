@@ -18,6 +18,8 @@ flask-migrate = "*"
 pytest = "*"
 emoji = "*"
 psycopg2-binary = "*"
+flask-compress = "*"
+flask-caching = "*"
 
 [dev-packages]
 

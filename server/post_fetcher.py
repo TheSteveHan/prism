@@ -63,6 +63,15 @@ class DoubleBuffer:
         except Exception:
             pass
 
+    def get_size(self):
+        total_size = 0
+        with self.lock:
+            if self.current_buffer is not None:
+                total_size += len(self.current_buffer) - self.current_buffer_idx
+            if self.next_buffer is not None:
+                total_size += len(self.next_buffer)
+        return total_size
+
 
 posts_to_label = {}
 results_ready = {}
@@ -72,7 +81,7 @@ for i in LabelType:
     results_ready[i] = queue.Queue()
 
 # Task queue holds (label_type, limit) pairs that tell the fetching worker what to do
-task_queue = queue.Queue()
+task_queue = queue.Queue(maxsize=5)
 
 def query_for_low_conf_posts(label_type, limit):
     # Query to fetch posts with the lowest weighted label count, considering confidence and value
@@ -83,7 +92,7 @@ def query_for_low_conf_posts(label_type, limit):
         ).filter_by(label_type=label_type).group_by(Label.post_id).subquery()
         posts = db.session.query(Post, subquery.c.avg_confidence).outerjoin(
             subquery, Post.id == subquery.c.post_id,
-        ).order_by(subquery.c.avg_confidence.asc().nullsfirst()).limit(1000).all()
+        ).order_by(subquery.c.avg_confidence.asc().nullsfirst()).limit(3000).all()
 
     return [
         {
@@ -97,33 +106,33 @@ def query_for_low_conf_posts(label_type, limit):
 def post_fetching_worker(max_itr =-1):
     itr = 0
     last_fetch = datetime.datetime.now()
-    fetched_samples = 0
     print(f"post fetching worker started with max_itr {max_itr}")
     while True:
         try:
-            label_type, limit = task_queue.get(timeout=1)  # Wait for a task if the queue is empty
-            print(f"{label_type} {limit}")
+            label_type, limit = task_queue.get(timeout=10)  # Wait for a task if the queue is empty
             now = datetime.datetime.utcnow()
             notified = False
+            fetched_samples = posts_to_label[label_type].get_size()
             if fetched_samples > limit:
                 notified = True
                 results_ready[label_type].put(True)
-                print("notified result ready")
+            else:
+                print(f"-----{fetched_samples} not enough for limit {limit}")
             # limit max fetch frequency
-            if ((now - last_fetch).total_seconds() > 2 and fetched_samples < 500) or (fetched_samples<200):
-                print('fetching new samples')
+            #if ((now - last_fetch).total_seconds() > 1 and fetched_samples < 1500) or (fetched_samples<1000):
+            if fetched_samples < 1500:
+                print(f'------fetching new samples {fetched_samples}')
+                start_time = time.time()
                 results = query_for_low_conf_posts(label_type, limit)
                 fetched_samples += len(results)
-                print(f'fetched {len(results)} new samples, total sampples left {fetched_samples}')
+                end_time = time.time()
+                print(f'-----fetched {len(results)} new samples over {end_time-start_time}s, total sampples left {fetched_samples}')
                 posts_to_label[label_type].put(results)
                 itr += 1
             fetched_samples -= limit
-            print("marrking task done")
             task_queue.task_done()  # Indicate that the task has been processed
-            print("notifying result ready")
             if notified==False:
                 results_ready[label_type].put(True)
-                print("notified result ready")
         except queue.Empty:
             continue
         except Exception as e:
@@ -131,17 +140,16 @@ def post_fetching_worker(max_itr =-1):
 
         if max_itr > 0 and itr > max_itr:
             break
-        time.sleep(1)
+
 
     print(f"post fetching worker exited after {itr} iters")
 
 
 def fetch_posts_for_label(label_type, limit):
     task = (label_type, limit)
-    print("putting task")
-    task_queue.put(task)
-    print("pwaiting for result")
-    results_ready[label_type].get()
-    results_ready[label_type].task_done()
+    try:
+        task_queue.put_nowait(task)
+    except queue.Full:
+        pass
     return posts_to_label[label_type].get(limit)
 

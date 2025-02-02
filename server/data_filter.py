@@ -17,11 +17,11 @@ def operations_callback(ops: defaultdict) -> None:
     for created_post in ops[models.ids.AppBskyFeedPost]['created']:
         author = created_post['author']
         record = created_post['record']
-        if not record.langs or ('en' not in record.langs):
+        if not record.langs or len(record.langs)!=1 or ('en' not in record.langs):
             continue
         # print all texts just as demo that data stream works
         post_with_images = isinstance(record.embed, models.AppBskyEmbedImages.Main)
-        inlined_text = record.text.replace('\n', ' ')
+        inlined_text = record.text.replace('\n', ' ').replace("\0", "")
         '''
         print(
             f'NEW POST '
@@ -48,7 +48,10 @@ def operations_callback(ops: defaultdict) -> None:
         posts_to_create.append(post_dict)
 
     if posts_to_create:
-        db.session.bulk_insert_mappings(Post, posts_to_create)
-        db.session.commit()
+        try:
+            db.session.bulk_insert_mappings(Post, posts_to_create)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
         SERVER_STATE['TOTAL_ENTRIES'] += len(posts_to_create)
         #logger.debug(f'Added to feed: {len(posts_to_create)}')
