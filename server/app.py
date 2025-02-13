@@ -1,16 +1,23 @@
+import datetime
+import uuid
 import os
 from collections import defaultdict
 import sys
 import signal
 import threading
 from .settings import app, db, compress, cache
-from .database import Post, Label
+from .database import Post, Label, PostSubmission, PostModality
 from .post_fetcher import fetch_posts_for_label, post_fetching_worker
 from flask import jsonify, request
 from .state import SERVER_STATE
 from sqlalchemy.sql import func
 from sqlalchemy.orm import aliased
+import time
+import jwt
+from nanoid import generate
 
+
+JWT_KEY=os.getenv('JWT_KEY', "test")
 
 
 def start_streamer():
@@ -36,6 +43,88 @@ def start_streamer():
 def get_server_state():
     return jsonify(SERVER_STATE)
 
+@app.route('/api/auth/stateless-user', methods=['POST'])
+def generate_user():
+    uid = generate()
+    encoded_jwt = jwt.encode({"uid": uid, "t": time.time()}, JWT_KEY, algorithm="HS256")
+    return jsonify({
+        'token': encoded_jwt
+    }), 200
+
+def get_user():
+    auth_header = request.headers.get("Authorization", "")
+    parts = auth_header.split(' ')
+    if len(parts) != 2:
+        return None
+    if parts[0] != "JWT":
+        return None
+    try:
+        token = jwt.decode(parts[1], JWT_KEY, algorithms=["HS256"])
+        return token['uid']
+    except Exception:
+        return None
+
+@app.route('/api/posts/submit', methods=['POST'])
+def submit_posts():
+    user = get_user()
+    if not user:
+        return "Log in required", 403
+    for entry in request.json:
+        submission = PostSubmission(
+            uri=entry['uri'], submitter=user,
+            text=entry.get('text'),
+            videos=entry.get('videos')
+        )
+        db.session.add(submission)
+    db.session.commit()
+    return 'ok', 201
+
+@app.route('/api/posts/submissions', methods=['GET'])
+def show_submissions():
+    user = get_user()
+    if not user:
+        return "Log in required", 403
+    submissions = PostSubmission.query.filter(
+        PostSubmission.reviewed_at==None
+    ).order_by(
+        PostSubmission.uri, PostSubmission.submitted_at.desc()
+    ).distinct(PostSubmission.uri).limit(5).all()
+    return jsonify(submissions), 200
+
+@app.route('/api/posts/submissions/review/<sid>', methods=['POST'])
+def approve_submission(sid):
+    user = get_user()
+    if not user:
+        return "Log in required", 403
+    submission = PostSubmission.query.filter(
+        PostSubmission.id==sid
+    ).first()
+    post = Post(uri=submission.uri, cid=submission.uri, modality=PostModality.VIDEO)
+    db.session.add(post)
+    db.session.commit()
+    data = request.json
+    labels = []
+    approved = None
+    for label in data:
+        new_label = Label(
+            confidence=1, post_id=post.id, label_type=label['label_type'], value=label['value'],
+            src=user, comment=label.get('comment')
+        )
+        if new_label.label_type==4:
+            if new_label.value== 0:
+                approved = False
+            else:
+                approved = True
+        db.session.add(new_label)
+    post.approved = approved or False
+    res = PostSubmission.query.filter(
+        PostSubmission.uri==submission.uri
+    ).update({
+        'reviewed_at': datetime.datetime.utcnow()
+    })
+    db.session.commit()
+    return jsonify(post), 201
+
 @app.route('/api/posts/labeling', methods=['GET'])
 def get_posts_with_lowest_labels():
     label_type = request.args.get('label_type', type=int)
@@ -45,6 +134,15 @@ def get_posts_with_lowest_labels():
         return jsonify({"error": "label_type parameter is required."}), 400
     result = fetch_posts_for_label(label_type, limit)
     return jsonify(result), 200
+
+@app.route('/api/posts/recent-videos', methods=['GET'])
+def get_recent_videos():
+    posts = Post.query.filter(
+        Post.approved==True,
+        Post.modality==PostModality.VIDEO).order_by(
+        Post.indexed_at.desc()
+    ).limit(20)
+    return jsonify(posts), 200
 
 @app.route('/api/posts/recent', methods=['GET'])
 @compress.compressed()

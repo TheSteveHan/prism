@@ -4,18 +4,38 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_compress import Compress
 from flask_caching import Cache
+from flask_admin import Admin
+from datetime import date, datetime
+from flask.json.provider import _default as _json_default
 
 import os
+
+
+
+
+def json_default(obj):
+    try:
+        if isinstance(obj, date) or isinstance(obj, datetime):
+            return obj.isoformat()
+        iterable = iter(obj)
+    except TypeError:
+        pass
+    else:
+        return list(iterable)
+    return _json_default(obj)
 
 DB_URL = os.getenv("DB_URL", 'postgresql+psycopg2://postgres:postgres@localhost:5432/prism')
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.json.default = json_default
+
 # disable default compression of all eligible requests
 app.config["COMPRESS_REGISTER"] = False
 app.config["CACHE_TYPE"] = "SimpleCache"
 app.config["CACHE_DEFAULT_TIMEOUT"] = 60
+
 
 
 metadata = MetaData(
@@ -33,4 +53,5 @@ migrate = Migrate(app, db)
 compress = Compress()
 compress.init_app(app)
 cache = Cache(app)
+admin = Admin(app, name='prism')
 

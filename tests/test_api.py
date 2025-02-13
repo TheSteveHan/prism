@@ -75,3 +75,42 @@ def test_bulk_add_labels(test_client):
     assert len(labels) == 2
     assert labels[0].confidence == 0.9
     assert labels[1].confidence == 0.8
+
+def test_generate_user_submit_post(test_client):
+    response = test_client.post('/api/auth/stateless-user')
+    token = response.get_json()['token']
+    headers = {'Authorization': f"JWT {token}"}
+    response = test_client.post('/api/posts/submit', json=[{
+        "uri": "https://www.youtube.com/watch?v=36L9cYkHyZM",
+        "text": "some description"
+    }], headers= headers)
+    assert response.status_code == 201
+    response = test_client.get('/api/posts/submissions', headers= headers)
+    data = response.json
+    assert len(data) == 1
+    sid = data[0]['id']
+    response = test_client.post(f'/api/posts/submissions/review/{sid}', headers=headers, json=[
+        {
+            'value': 1,
+            'label_type': 0,
+        },
+        {
+            'value': 0.3,
+            'label_type': 2,
+        },
+        {
+            'value': 0.2,
+            'label_type': 3,
+        },
+        {
+            'value': 1,
+            'label_type': 4,
+            'comment': "this is terrible"
+        },
+    ])
+    assert response.status_code == 201
+    response = test_client.get('/api/posts/recent-videos', headers= headers)
+    data = response.json
+    print(data)
+    assert len(data) == 1
+

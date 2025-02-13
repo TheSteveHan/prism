@@ -20,6 +20,9 @@ emoji = "*"
 psycopg2-binary = "*"
 flask-compress = "*"
 flask-caching = "*"
+flask-admin = {extras = ["sqlalchemy"], version = "*"}
+pyjwt = "*"
+nanoid = "*"
 
 [dev-packages]
 
