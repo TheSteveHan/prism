@@ -47,3 +47,14 @@ h1 {
     background-color: #f9f9f9;
   }
 }
+
+.gptTxtContainer p{
+    display:inline;
+}
+.gptTxtContainer div.inline-flex{
+    display:inline-flex;
+}
+
+button:hover {
+    filter: brightness(1.2);
+}
