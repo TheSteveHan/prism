@@ -2,7 +2,7 @@ version: '3'
 
 services:
   nginx:
-    build: ./frontend
+    image: 651706751476.dkr.ecr.us-east-2.amazonaws.com/bloom/prism-nginx
     restart: unless-stopped
     env_file:
       - ./.nginx-certbot.env
@@ -12,7 +12,7 @@ services:
     volumes:                                    # Storage can be either a
       - nginx_secrets:/etc/letsencrypt          # Docker managed volume (see list at the bottom)
   api-service:
-    build: .
+    image: 651706751476.dkr.ecr.us-east-2.amazonaws.com/bloom/prism-api-service
     restart: unless-stopped
     env_file:
       - ./.api-service.env
