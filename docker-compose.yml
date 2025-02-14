@@ -7,8 +7,8 @@ services:
     env_file:
       - ./.nginx-certbot.env
     ports:
-      - 81:80
-      - 444:443
+      - 80:80
+      - 443:443
     volumes:                                    # Storage can be either a
       - nginx_secrets:/etc/letsencrypt          # Docker managed volume (see list at the bottom)
   api-service:
