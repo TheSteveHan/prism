@@ -25,8 +25,8 @@ function LabelWidget({
     // Calculate click position relative to the div
     let x, y;
     if(event.clientX!==undefined){
-      x = event.clientX - rect.left;
-      y = event.clientY - rect.top;
+      x = event.clientX
+      y = event.clientY
     } else {
       x = event.changedTouches[0].clientX;
       y = event.changedTouches[0].clientY;

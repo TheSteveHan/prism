@@ -12,7 +12,7 @@ const I_SCALE_COLOR = "rgba(255,128,64,1)"
 const A_SCALE_COLOR = "rgba(128,128,255,1)"
 
 const LABEL_TYPES = {
-  0: 0,
+  0: 1, // aggregate emotion score
   1: 2,
   2: 3,
 }
@@ -51,8 +51,13 @@ export default function Review() {
   useEffect(() => {
     if(postIdx>=posts.length){
       axios.get("/api/posts/submissions").then(({data})=>{
-        setPosts(data.filter(p=>!viewedPostsRef.current.has(p.id)))
-        setPostIdx(0)
+        let newPosts = data.filter(p=>!viewedPostsRef.current.has(p.id))
+        if(!newPosts.length){
+          // do nothing
+        } else {
+          setPosts(newPosts)
+          setPostIdx(0)
+        }
       })
     }
   }, [postIdx, posts])

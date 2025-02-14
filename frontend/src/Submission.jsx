@@ -400,8 +400,8 @@ export default function ExtractLinks() {
     }
     setLoading(true)
     console.log(links)
-    axios.post('/api/posts/submit', links.filter(l=>l.desc).map(l=>({
-      uri: l.url, text: l.desc
+    axios.post('/api/posts/submit', links.filter(l=>l.title).map(l=>({
+      uri: l.url, text: l.desc || l.title
     }))).then(({data}) => {
       setRichText("")
     }).finally(() => {
