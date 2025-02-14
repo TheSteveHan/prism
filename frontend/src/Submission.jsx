@@ -240,7 +240,7 @@ async function fetchOEmbedData(url) {
     }
 
     try {
-      const response = await fetch(`http://localhost:30080/${provider.endpoint}${encodeURIComponent(url)}`);
+      const response = await fetch(`/${provider.endpoint}${encodeURIComponent(url)}`);
         if (!response.ok) {
             throw new Error("Failed to fetch oEmbed data");
         }
@@ -268,7 +268,7 @@ function CandidateLink({link}){
   const url = link.url
   useEffect(() => {
     if(url.includes('instagram')){
-      axios.get(`http://localhost:30080/${url}`).then(async ({data})=>{
+      axios.get(`/${url}`).then(async ({data})=>{
         //
         const preview = await extractPreview(url, data)
         if(!preview){

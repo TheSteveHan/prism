@@ -1,0 +1,7 @@
+frontend/
+instance/
+datasets/
+models/
+*.vec
+*.vec.zip
+*.bin

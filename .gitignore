@@ -177,3 +177,5 @@ cython_debug/
 
 datasets/
 models/
+.nginx-certbot.env
+.api-service.env

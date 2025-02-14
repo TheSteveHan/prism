@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  nginx:
+    build: ./frontend
+    restart: unless-stopped
+    env_file:
+      - ./.nginx-certbot.env
+    ports:
+      - 81:80
+      - 444:443
+    volumes:                                    # Storage can be either a
+      - nginx_secrets:/etc/letsencrypt          # Docker managed volume (see list at the bottom)
+      - ./frontend/nginx:/etc/nginx/conf.d    # or a host mount with a relative or full path.
+  api-service:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - ./.api-service.env
+  cors-anywhere:
+    image: yasinuslu/cors-anywhere:latest
+    restart: unless-stopped
+    ports:
+       - 80
+
+volumes:
+  nginx_secrets:
