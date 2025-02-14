@@ -53,5 +53,5 @@ migrate = Migrate(app, db)
 compress = Compress()
 compress.init_app(app)
 cache = Cache(app)
-admin = Admin(app, name='prism')
+admin = Admin(app, name='prism', url='/adminzzz/prism')
 
