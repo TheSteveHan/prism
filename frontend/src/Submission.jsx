@@ -126,9 +126,12 @@ async function extractPreview(url, text){
     if(!res){
       return null
     }
-    console.log(res)
     //res['videos'] = videos 
     return res
+  }
+  if(url.indexOf("youtu")!==-1){
+    console.log(text)
+    return extractYTMeta(text)
   }
 }
 
@@ -158,6 +161,25 @@ async function extractIGVideoVersions(url){
   })
 }
 
+function extractYTMeta(html) {
+    const metaTags = {
+        title: /<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i,
+        desc: /<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i,
+        keywords: /<meta\s+name=["']keywords["']\s+content=["']([^"']+)["']/i
+    };
+
+    const result = {};
+    
+    for (const [key, regex] of Object.entries(metaTags)) {
+        const match = html.match(regex);
+        result[key] = match ? decodeHtmlEntities(match[1]) : null;
+    }
+
+    if (!result.desc) {
+      return null
+    }
+    return result;
+}
 function extractInstagramMeta(html) {
     const metaTags = {
         title: /<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i,
@@ -205,6 +227,39 @@ function convertToNumber(str) {
     }
     return parseInt(str.replace(',', ''), 10);
 }
+async function fetchOEmbedData(url) {
+    const providers = [
+        { name: "YouTube", match: /youtube\.com|youtu\.be/, endpoint: "https://www.youtube.com/oembed?url=" },
+        { name: "Instagram", match: /instagram\.com/, endpoint: "https://graph.facebook.com/v12.0/instagram_oembed?url=" },
+        { name: "TikTok", match: /tiktok\.com/, endpoint: "https://www.tiktok.com/oembed?url=" }
+    ];
+
+    const provider = providers.find(p => p.match.test(url));
+    if (!provider) {
+        throw new Error("Unsupported URL");
+    }
+
+    try {
+      const response = await fetch(`http://localhost:30080/${provider.endpoint}${encodeURIComponent(url)}`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch oEmbed data");
+        }
+
+        const data = await response.json();
+      if(!data.title){
+        return null
+
+      } 
+      return {
+          title: data.title || null,
+          thumbnail: data.thumbnail_url || null,
+          provider: provider.name
+      };
+    } catch (error) {
+        console.error("Error fetching oEmbed data:", error);
+        return null;
+    }
+}
 
 function CandidateLink({link}){
   const [isValid, setIsValid] = useState(true)
@@ -212,23 +267,32 @@ function CandidateLink({link}){
   const [desc, setDesc] = useState("")
   const url = link.url
   useEffect(() => {
-    axios.get(`http://localhost:30080/${url}`).then(async ({data}) => {
-      const preview = await extractPreview(url, data)
-      if(!preview){
-        setIsValid(false)
-      } else {
+    if(url.includes('instagram')){
+      axios.get(`http://localhost:30080/${url}`).then(async ({data})=>{
+        //
+        const preview = await extractPreview(url, data)
+        if(!preview){
+          setIsValid(false)
+          return
+        }
+        setDesc(preview.title)
+        link.title = preview.title
+      }).finally(() => {
+        setChecking(false)
+      })
+    }else {
+      fetchOEmbedData(url).then(data=>{
+        if(!data){
+          setIsValid(false)
+          return 
+        }
         setIsValid(true)
-        setDesc(preview.desc)
-        link.desc = preview.desc
-        link.videos = preview.videos
-        link.likes = preview.likes
-        link.comments = preview.comments
-        link.username = preview.username
-        link.time = preview.time
-      }
-    }).finally(() => {
-      setChecking(false)
-    })
+        setDesc(data.title)
+        link.title = data.title
+      }).finally(() => {
+        setChecking(false)
+      })
+    }
   }, [])
   return <div>
   <a href={url} target="_blank" rel="noopener noreferrer" style={{ 
@@ -270,19 +334,18 @@ export default function ExtractLinks() {
       const anchorTags = tempElement.getElementsByTagName("a");
       let foundLinks = [];
 
-      for (let a of anchorTags) {
-        const url = a.href;
-        if (VIDEO_PATTERNS.some(pattern => pattern.test(url))) {
-          foundLinks.push(
-            url.substr(0, (url.indexOf("#")+1||url.length+1)-1)
-          )
-        }
-      }
-      const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/g;
-      foundLinks = [
-        ...foundLinks,
+      const urlRegex = /https?:\/\/[a-zA-Z0-9\/_\-@.?=]*/g;
+      let urls = new Set([
+        ...Array.from(anchorTags).map(
+          a=>a.href.substr(0, (a.href.indexOf("#")+1||a.href.length+1)-1)
+        ),
         ...(tempElement.textContent.match(urlRegex) || [])
-      ]
+      ])
+      urls.forEach(url=>{
+        if (VIDEO_PATTERNS.some(pattern => pattern.test(url))) {
+          foundLinks.push(url)
+        }
+      })
       setLinks(foundLinks.map(l=>({url:l})));
     };
     if(csvMode){
@@ -365,23 +428,27 @@ export default function ExtractLinks() {
         </div>
         <div
           className="gptTxtContainer"
-          style={{ maxHeight: 300, textAlign:"left", minWidth: "90%", margin:16,  flex:1, minHeight: "200px", 
+          style={{ textAlign:"left", minWidth: "90%", margin:16,  flex:1, minHeight: "200px", 
         backgroundColor: "#333", color: "white", 
             padding: "8px", borderRadius: "8px", border: "none", overflowY: "auto" }}
           contentEditable
           onPaste={handlePaste}
           dangerouslySetInnerHTML={{ __html: richText }}
         />
-        <div style={{ marginLeft: 16, fontSize: "18px", fontWeight: "bold"}}>Extracted {links.length} Videos:</div>
+      </div>
+      <div style={{display:"flex", flexDirection:"row", flexWrap:"wrap"}}>
         {links.length > 0 && (
-          <div style={{ textAlign:"left", margin: "0px 16px", overflowX: "hidden", flex:1, overflowY:"auto"}}>
-            <ul style={{ listStyleType: "disc", paddingLeft: "16px", color: "#3b82f6", fontSize:10}}>
+          <div style={{ 
+            textAlign:"left", margin: "0px 16px",maxHeight:"100vh",
+            display:"flex", flexDirection:"column", flexWrap:"wrap", gap: "0px 16px"
+          }}>
+        <div style={{ fontSize: "18px", fontWeight: "bold"}}>
+          Extracted {links.length} Videos:</div>
               {links.map((link, index) => (
-                <li key={link.url}>
+                <div key={link.url} style={{width:420, fontSize:11, overview:"hidden"}}>
                   <CandidateLink link={link}/>
-                </li>
+                </div>
               ))}
-            </ul>
           </div>
         )}
       </div>
