@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   nginx:
     image: 651706751476.dkr.ecr.us-east-2.amazonaws.com/bloom/prism-nginx

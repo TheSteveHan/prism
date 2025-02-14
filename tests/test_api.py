@@ -92,7 +92,7 @@ def test_generate_user_submit_post(test_client):
     response = test_client.post(f'/api/posts/submissions/review/{sid}', headers=headers, json=[
         {
             'value': 1,
-            'label_type': 0,
+            'label_type': 1,
         },
         {
             'value': 0.3,

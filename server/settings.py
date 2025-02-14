@@ -25,8 +25,10 @@ def json_default(obj):
     return _json_default(obj)
 
 DB_URL = os.getenv("DB_URL", 'postgresql+psycopg2://postgres:postgres@localhost:5432/prism')
+SECRET_KEY = os.getenv("SECRET_KEY", "notasfekeyasall....")
 
 app = Flask(__name__)
+app.secret_key = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.default = json_default

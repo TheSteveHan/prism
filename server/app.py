@@ -115,14 +115,15 @@ def approve_submission(sid):
                 approved = False
             else:
                 approved = True
+        import pdb;pdb.set_trace()
         if new_label.label_type == 1:
-            post.e_score = label_type['value']
+            post.e_score = label['value']
             post.e_conf = 1
         elif new_label.label_type == 2:
-            post.i_score = label_type['value']
+            post.i_score = label['value']
             post.i_conf = 1
         elif new_label.label_type == 3:
-            post.a_score = label_type['value']
+            post.a_score = label['value']
             post.a_conf = 1
         db.session.add(new_label)
     post.approved = approved or False
