@@ -330,10 +330,9 @@ export default function ExtractLinks() {
   useEffect(() => {
     const extractLinks = () => {
       const tempElement = document.createElement("div");
-      tempElement.innerHTML = richText;
+      tempElement.innerHTML = richText.replace(/<(\/?)([a-zA-Z]{0,2})>/g, " <$1$2> ")
       const anchorTags = tempElement.getElementsByTagName("a");
       let foundLinks = [];
-
       const urlRegex = /https?:\/\/[a-zA-Z0-9\/_\-@.?=]*/g;
       let urls = new Set([
         ...Array.from(anchorTags).map(
