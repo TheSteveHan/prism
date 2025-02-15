@@ -431,11 +431,12 @@ export default function ExtractLinks() {
           dangerouslySetInnerHTML={{ __html: richText }}
         />
       </div>
-      <div style={{display:"flex", flexDirection:"row", flexWrap:"wrap"}}>
+      <div style={{display:"flex", flexDirection:"row", flexWrap:"wrap", flex:1}}>
         {links.length > 0 && (
           <div style={{ 
             textAlign:"left", margin: "0px 16px",maxHeight:"100vh",
-            display:"flex", flexDirection:"column", flexWrap:"wrap", gap: "0px 16px"
+            display:"flex", flexDirection:"column", flexWrap:"wrap", gap: "0px 16px", 
+            width:"100%", overflowX:"auto"
           }}>
         <div style={{ fontSize: "18px", fontWeight: "bold"}}>
           Extracted {links.length} Videos:</div>
