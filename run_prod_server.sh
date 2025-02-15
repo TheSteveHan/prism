@@ -1,4 +1,5 @@
 #!/bin/bash
+flask db upgrade head
 flask run --host 0.0.0.0 --port 8008 --with-threads #python -m server.main
 exit
 

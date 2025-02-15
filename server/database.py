@@ -65,7 +65,7 @@ class Label(db.Model):
     src = db.Column(db.String, nullable=False)
     value = db.Column(db.Float, nullable=False)
     confidence = db.Column(db.Float, nullable=False)
-    post_id = db.Column(db.BigInteger, db.ForeignKey('post.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=False, )
+    post_id = db.Column(db.BigInteger, db.ForeignKey('post.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=True, )
     comment = db.Column(db.String, nullable=True)
 
     post = db.relationship('Post', backref='labels')
@@ -76,3 +76,4 @@ class Label(db.Model):
 
 admin.add_view(ModelView(PostSubmission, db.session))
 admin.add_view(ModelView(Post, db.session))
+admin.add_view(ModelView(Label, db.session))
