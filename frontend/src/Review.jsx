@@ -65,7 +65,7 @@ export default function Review() {
 
   const onAccept = useCallback(() => {
     viewedPostsRef.current.add(posts[[postIdx]].id)
-    submitLabel(posts[postIdx].id, labelValues, comment, true)
+    submitLabel(posts[postIdx].id, labelValues, true, comment)
     setPostIdx(p=>p+1)
     setLabelValues([0.5, 0.5, 0.5])
     setComment("")
@@ -73,7 +73,7 @@ export default function Review() {
 
   const onReject = useCallback(() => {
     viewedPostsRef.current.add(posts[[postIdx]].id)
-    submitLabel(posts[postIdx].id, labelValues, comment, true)
+    submitLabel(posts[postIdx].id, labelValues, false, comment)
     setPostIdx(p=>p+1)
     setLabelValues([0.5, 0.5, 0.5])
     setComment("")
@@ -140,13 +140,13 @@ export default function Review() {
       border: "none",
       borderRadius:4,
       backgroundColor:"#666666"
-    }} onClick={onAccept}>Reject</button>
+    }} onClick={onReject}>Reject</button>
     <button style={{
       padding: "8px 12px",
       border: "none",
       borderRadius:4,
       backgroundColor:"#6666ff"
-    }} onClick={onReject}>Accept</button>
+    }} onClick={onAccept}>Accept</button>
     </div>
     </div>
     </div>

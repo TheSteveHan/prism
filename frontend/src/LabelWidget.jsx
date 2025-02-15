@@ -67,6 +67,10 @@ function LabelWidget({
     //updateValue(e)
   }, [updateValue])
 
+  useEffect(()=>{
+    setNewVal(value)
+  }, [value])
+
   return <div 
     key={idx}
     ref={containerRef}
