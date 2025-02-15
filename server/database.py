@@ -26,7 +26,7 @@ class Post(db.Model):
     a_conf = db.Column(db.Float, nullable=True, default=None)
     text:str = db.Column(db.String, nullable=True)
     modality:int = db.Column(db.Integer, nullable=True, index=True)
-    approved:bool = db.Column(db.Boolean, nullable=True, index=True)
+    approved = db.Column(db.Boolean, nullable=True, index=True)
 
 
     def __repr__(self):
@@ -65,7 +65,7 @@ class Label(db.Model):
     src = db.Column(db.String, nullable=False)
     value = db.Column(db.Float, nullable=False)
     confidence = db.Column(db.Float, nullable=False)
-    post_id = db.Column(db.BigInteger, db.ForeignKey('post.id'), nullable=False)
+    post_id = db.Column(db.BigInteger, db.ForeignKey('post.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=False, )
     comment = db.Column(db.String, nullable=True)
 
     post = db.relationship('Post', backref='labels')

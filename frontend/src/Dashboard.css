@@ -1,0 +1,17 @@
+.statsTile{
+    flex: 1;
+    background-color: #333;
+    padding: 16px 32px;
+    border-Radius: 8px;
+    text-align: center;
+}
+.statsTile div:nth-child(1){
+    font-family: impact;
+    font-size: 32px;
+    font-weight: 900;
+}
+.statsTile div:nth-child(2){
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 900;
+}

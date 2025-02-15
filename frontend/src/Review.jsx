@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useState, useEffect } from "react";
 import SocialMediaEmbed from './SocialMediaEmbed'
 import axios from 'axios'
 import LabelWidget from './LabelWidget'
-
+import OpsNav from './OpsNav'
 const SOCIAL_DOMAINS = ["youtube.com", "youtu.be", "tiktok.com", "instagram.com", "facebook.com", "linkedin.com"];
 let USER_TOKEN = localStorage.getItem('user-token')
 axios.defaults.headers.common['Authorization'] = `JWT ${USER_TOKEN}`;
@@ -85,6 +85,7 @@ export default function Review() {
       justifyContent:"space-between",
       height:"100%"
     }}>
+      <OpsNav/>
       <div style={{
         justifyContent:"center", gap: 16, textAlign:"left", 
         alignItems:"center",

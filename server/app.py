@@ -115,7 +115,6 @@ def approve_submission(sid):
                 approved = False
             else:
                 approved = True
-        import pdb;pdb.set_trace()
         if new_label.label_type == 1:
             post.e_score = label['value']
             post.e_conf = 1
@@ -153,6 +152,15 @@ def get_recent_videos():
         Post.indexed_at.desc()
     ).limit(20)
     return jsonify(posts), 200
+
+@app.route('/api/posts/all-videos', methods=['GET'])
+def get_all_videos():
+    posts = Post.query.filter(
+        Post.approved==True,
+        Post.modality==PostModality.VIDEO).order_by(
+    )
+    return jsonify(posts), 200
+
 
 @app.route('/api/posts/recent', methods=['GET'])
 @compress.compressed()

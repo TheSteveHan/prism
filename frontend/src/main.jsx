@@ -8,13 +8,15 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import Feed from './Feed.jsx'
 import Submission from './Submission.jsx'
 import Review from './Review.jsx'
+import Dashboard from './Dashboard.jsx'
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<Feed />} />
-      <Route path="/submit" element={<Submission />} />
-      <Route path="/review" element={<Review />} />
+      <Route path="/ops/submit" element={<Submission />} />
+      <Route path="/ops/review" element={<Review />} />
+      <Route path="/ops/dashboard" element={<Dashboard/>} />
     </Routes>
   </BrowserRouter>,
 )

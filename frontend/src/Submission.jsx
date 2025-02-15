@@ -309,11 +309,7 @@ export default function ExtractLinks() {
   const [richText, setRichText] = useState("");
   const [csvMode, setCsvMode] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [links, setLinks] = useState([
-    {
-      url: "https://www.tiktok.com/@codingmermaid.ai/video/7297607356190575878",
-    }
-  ]);
+  const [links, setLinks] = useState([ ]);
 
   useEffect(() => {
     if(!USER_TOKEN){
