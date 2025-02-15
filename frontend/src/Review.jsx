@@ -30,7 +30,8 @@ const submitLabel = (sid, labelValues, approved, comment) => {
   }
   newLabels.push({
     value: approved?1:0,
-    label_type: 4
+    label_type: 4,
+    comment,
   })
   axios.post(`/api/posts/submissions/review/${sid}`, newLabels).catch(e=>{console.error(e)})
 }
