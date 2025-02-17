@@ -312,18 +312,6 @@ export default function ExtractLinks() {
   const [links, setLinks] = useState([ ]);
 
   useEffect(() => {
-    if(!USER_TOKEN){
-      axios.post("/api/auth/stateless-user").then(({data:{token}})=>{
-        localStorage.setItem('user-token', token)
-        USER_TOKEN = token
-        axios.defaults.headers.common['Authorization'] = `JWT ${USER_TOKEN}`;
-      })
-    } else {
-        axios.defaults.headers.common['Authorization'] = `JWT ${USER_TOKEN}`;
-    }
-  }, [])
-
-  useEffect(() => {
     const extractLinks = () => {
       const tempElement = document.createElement("div");
       tempElement.innerHTML = richText.replace(/<(\/?)([a-zA-Z]{0,2})>/g, " <$1$2> ")

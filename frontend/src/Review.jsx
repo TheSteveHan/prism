@@ -4,8 +4,6 @@ import axios from 'axios'
 import LabelWidget from './LabelWidget'
 import OpsNav from './OpsNav'
 const SOCIAL_DOMAINS = ["youtube.com", "youtu.be", "tiktok.com", "instagram.com", "facebook.com", "linkedin.com"];
-let USER_TOKEN = localStorage.getItem('user-token')
-axios.defaults.headers.common['Authorization'] = `JWT ${USER_TOKEN}`;
 
 const E_SCALE_COLOR = "rgba(255,64,64,1)"
 const I_SCALE_COLOR = "rgba(255,128,64,1)"
@@ -88,14 +86,14 @@ export default function Review() {
     }}>
       <OpsNav/>
       <div style={{
-        justifyContent:"center", gap: 16, textAlign:"left", 
+        justifyContent:"flex-start", gap: 16, textAlign:"left", 
         alignItems:"center",
         display:"flex", flexDirection:"column",
         overflowY:"auto"
       }}>
         {posts[postIdx] && 
         <>
-              <div style={{width:320, height: 500}}>
+              <div style={{width:320, height: 600}}>
                 <div style={{overflowY:"hidden", height:"100%"}}>
                 <SocialMediaEmbed post={posts[postIdx]}/>
                 </div>
