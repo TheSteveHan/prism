@@ -3,6 +3,7 @@ from enum import IntEnum
 from .settings import db, admin
 from flask_admin.contrib.sqla import ModelView
 from dataclasses import dataclass
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 
 
@@ -34,8 +35,9 @@ class Post(db.Model):
 
 @dataclass
 class PostSubmission(db.Model):
+    __defailt_unique_constraint_name__ = "uq_post_submission_uri"
     id:int = db.Column(db.Integer, primary_key=True)
-    uri:str = db.Column(db.String, index=True, nullable=False)
+    uri:str = db.Column(db.String, nullable=False, unique=True)
     text:str = db.Column(db.String, nullable=True)
     data:dict = db.Column(db.JSON, nullable=True)
     videos:dict = db.Column(db.JSON, nullable=True)
@@ -77,3 +79,50 @@ class Label(db.Model):
 admin.add_view(ModelView(PostSubmission, db.session))
 admin.add_view(ModelView(Post, db.session))
 admin.add_view(ModelView(Label, db.session))
+
+
+def upsert_update_constraint(model, objects, params=None, db_engine=None):
+    if not params:
+        params = {
+            'constraint': model.__defailt_unique_constraint_name__
+        }
+    obj_dicts = []
+    # all of the keys that should be updated on conflict
+    update_keys= set()
+    for obj in objects:
+        props = dict(obj.__dict__) if not isinstance(obj, dict) else obj
+        props.pop("_sa_instance_state", None)
+        obj_dicts.append(props)
+        update_keys.update(props)
+    if not update_keys:
+        return
+    statement = pg_insert(model).values(obj_dicts)
+    params.update({
+        "set_":{
+            key: getattr(statement.excluded, key)
+            for key in update_keys
+        }
+    })
+    statement = statement.on_conflict_do_update(**params)
+    if not db_engine:
+        db.session.execute(statement)
+        db.session.commit()
+    else:
+        db_engine.execute(statement)
+
+def upsert_ignore_constraint(model, objects, params=None):
+    if params is None:
+        params = {
+            'constraint': model.__defailt_unique_constraint_name__
+        }
+    obj_dicts = []
+    for obj in objects:
+        props = dict(obj.__dict__)
+        props.pop("_sa_instance_state")
+        obj_dicts.append(props)
+    statement = pg_insert(model).values(obj_dicts).on_conflict_do_nothing(
+        **params
+    )
+    db.session.execute(statement)
+    db.session.commit()
+

@@ -116,9 +116,7 @@ function App() {
       return
     }
     const res = kdTree.nearest_k(targetVec, 600)
-    console.log(res)
     setResults(res)
-
   }, [targetVec, kdTree])
 
   const handleKnobChange = useCallback((e) => {
@@ -126,7 +124,6 @@ function App() {
     setTargetVec(v=>{
       const tgt = [...v]
       tgt[idx] = parseFloat(e.target.value)
-      console.log(tgt)
       return tgt
     })
      

@@ -6,7 +6,7 @@ import sys
 import signal
 import threading
 from .settings import app, db, compress, cache
-from .database import Post, Label, PostSubmission, PostModality
+from .database import Post, Label, PostSubmission, PostModality, upsert_ignore_constraint
 from .post_fetcher import fetch_posts_for_label, post_fetching_worker
 from flask import jsonify, request
 from .state import SERVER_STATE
@@ -69,14 +69,15 @@ def submit_posts():
     user = get_user()
     if not user:
         return "Log in required", 403
-    for entry in request.json:
-        submission = PostSubmission(
+    subs = [
+        PostSubmission(
             uri=entry['uri'], submitter=user,
             text=entry.get('text'),
             videos=entry.get('videos')
         )
-        db.session.add(submission)
-    db.session.commit()
+        for entry in request.json
+    ]
+    upsert_ignore_constraint(PostSubmission, subs)
     return 'ok', 201
 
 @app.route('/api/posts/submissions', methods=['GET'])
@@ -149,8 +150,8 @@ def get_recent_videos():
     posts = Post.query.filter(
         Post.approved==True,
         Post.modality==PostModality.VIDEO).order_by(
-        Post.indexed_at.desc()
-    ).limit(20)
+        Post.uri.desc(),Post.indexed_at.desc()
+    ).distinct(Post.uri).limit(20)
     return jsonify(posts), 200
 
 @app.route('/api/posts/all-videos', methods=['GET'])
@@ -158,7 +159,8 @@ def get_all_videos():
     posts = Post.query.filter(
         Post.approved==True,
         Post.modality==PostModality.VIDEO).order_by(
-    )
+            Post.uri.desc(), Post.indexed_at.desc()
+    ).distinct(Post.uri).all()
     return jsonify(posts), 200
 
 
