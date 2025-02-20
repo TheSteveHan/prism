@@ -204,6 +204,7 @@ SIMPLE_JWT = {
 
 ACCOUNT_ADAPTER = "authentication.views.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "authentication.views.SocialAccountAdapter"
+SOCIALACCOUNT_LOGIN_ON_GET=True
 SOCIALACCOUNT_PROVIDERS = {
     "apple": {
         "APP": {
