@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 python ./manage.py migrate
 
 # clear out expired JWT tokens

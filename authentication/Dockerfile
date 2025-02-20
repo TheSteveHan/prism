@@ -10,4 +10,4 @@ COPY Pipfile* ./
 RUN pipenv install --deploy --system
 ADD . /app/
 ENV DEBUG=False
-ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+ENTRYPOINT ["/usr/local/bin/dumb-init", "--", "./docker_entrypoint.sh"]
