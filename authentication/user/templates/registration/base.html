@@ -1,0 +1,202 @@
+<!-- templates/registration/login.html -->
+<head>
+    
+    <meta property="og:type" content="website"/>
+    <title>
+        {% block title %}
+        Bloom Scroll
+        {% endblock title %}
+    </title>
+    <meta property="og:url"  content="https://bloomscroll.com" />
+    <meta property="og:title" content="Bloom Scroll" />
+    <meta property="og:site_name" content="bloomscroll.com" />
+    <meta property="og:description" content="BloomScroll: Social media reimagined for real connections, growth, and impact. Join the change." />
+    <meta content="https://cdn.prod.website-files.com/675612277278edf4cf5c104a/675c6552f5ee53721b60a0a0_BloomScroll%20Where%20Authentic%20Connections%20Thrive.gif" property="og:image"/>
+    <link href="https://cdn.prod.website-files.com/675612277278edf4cf5c104a/675fdc1e19afb5fb83ffdcc7_BloomSroll(32x32).jpg" rel="shortcut icon" type="image/x-icon">
+    <link href="https://cdn.prod.website-files.com/675612277278edf4cf5c104a/675fdc3d840b0a424316425a_BloomSroll(256x256.jpg" rel="apple-touch-icon">
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXX');
+    </script>
+<style>
+input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+body {
+    padding: 0px;
+    margin: 0;
+    font-family: apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    background-color: var(--bg1);
+    background-image: radial-gradient(var(--bg1), var(--bg2));
+    background-repeat: no-repeat;
+    background-position:center;
+    background-size: cover;
+    color: var(--contrast);
+    min-height: 100vh;
+    display: flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin: 15px;
+}
+
+.logo {
+  width: 150px;
+}
+
+.center {
+  margin: 0 auto;
+}
+
+h2{
+  text-align: center;
+}
+
+.flexColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+form {
+ color: var(--contrast);
+}
+
+form a{
+ color: var(--contrast);
+}
+
+form input, form button{
+ font-family: sans-serif;
+}
+
+form input:not(:first-child) {
+  margin-bottom: 20px;
+  width: 100%;
+}
+form input{
+  font-size: 15px;
+  padding: 15px;
+  border: none;
+  background-color: transparent;
+  color: #333;
+  outline: none;
+  border-bottom: 2px solid var(--main);
+}
+
+::placeholder {
+    color: #444;
+    opacity: 1;
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: #8b9caf;
+}
+
+.error {
+  color: #d00;
+  font-weight: 700;
+} 
+.success {
+    color: #594;
+    font-weight: 900;
+}
+
+.fullWidth {
+    width:100%;
+}
+.errorlist{
+    padding: 0px;
+    list-style:none;
+    margin:0px;
+    color: #d00;
+    font-weight: 900;
+}
+button, input[type="submit"]{
+  width: 100%;
+  background-color: var(--main);
+  border: None;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  margin-top: 10px;
+  padding: 15px;
+  outline: none;
+  cursor: pointer;
+}
+form p label{
+  display:none;
+}
+
+form p {
+  margin:0px;
+}
+
+.form-container{
+    max-width: 240px;
+    width: 85%;
+    border-radius: 15px;
+    padding: 30px;
+}
+
+.form-tip {
+    color: var(--contrast)!important;
+    font-weight: 900;
+}
+.form-tip a{
+    color: var(--contrast)!important;
+    font-weight: 900;
+}
+.text-logo{
+    margin-top: 40px;
+ color: var(--main);
+ font-size: 48px;
+ font-weight:900;
+}
+.logo-link{
+  text-decoration: none;
+  color: var(--main);
+  user-select: none;
+  cursor: pointer;
+}
+
+</style>
+{% include "./overrides.html" %}
+
+</head>
+<body>
+    <div class="wrapper">
+        <!--
+        <img class="logo" src="/accounts/static/logo.png" />
+        --!>
+        <a class="logo-link" href="/">
+        <img class="logo" src="/accounts/static/logo.jpg" />
+        </a>
+        <div class="form-container">
+            {% if messages %}
+                {% for message in messages %}
+                <div{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        <form class="flexColumn center fullWidth" method="post" spellcheck="false">
+        {% block content %}{% endblock content %}
+        </form>
+        </div>
+    </div>
+</body>

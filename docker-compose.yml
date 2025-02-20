@@ -1,7 +1,7 @@
 services:
   nginx:
     image: 651706751476.dkr.ecr.us-east-2.amazonaws.com/bloom/prism-nginx
-    restart: unless-stopped
+    restart: always
     env_file:
       - ./.nginx-certbot.env
     ports:
@@ -9,11 +9,19 @@ services:
       - 443:443
     volumes:                                    # Storage can be either a
       - nginx_secrets:/etc/letsencrypt          # Docker managed volume (see list at the bottom)
+      - auth_static_files:/var/www/auth
   api-service:
     image: 651706751476.dkr.ecr.us-east-2.amazonaws.com/bloom/prism-api-service
-    restart: unless-stopped
+    restart: always 
     env_file:
       - ./.api-service.env
+  auth:
+    image: 651706751476.dkr.ecr.us-east-2.amazonaws.com/bloom/prism-auth
+    restart: always
+    env_file:
+      - ./.api-service.env
+    volumes:                                    # Storage can be either a
+      - auth_static_files:/app/shared-static-files # Docker managed volume (see list at the bottom)
   cors-anywhere:
     image: yasinuslu/cors-anywhere:latest
     restart: unless-stopped
@@ -22,3 +30,4 @@ services:
 
 volumes:
   nginx_secrets:
+  auth_static_files:

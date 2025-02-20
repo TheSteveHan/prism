@@ -1,0 +1,31 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+django = "==3.1.7"
+djangorestframework = "==3.12.4"
+djangorestframework-simplejwt = "==4.6.0"
+django-extensions = "*"
+dj-rest-auth = {version = "==2.2.8",extras = ["with_social"]}
+psycopg2-binary = "==2.8.3"
+psycopg2 = "==2.8.3"
+grift = "==0.7.1"
+dj-database-url = "==0.5.0"
+google-api-python-client = "==2.4.0"
+pyjwt = {version = "==1.7.1",extras = ["crypto"]}
+django-pg-bulk-update = "==3.4.2"
+stripe = "*"
+django-waffle = "==2.1.0"
+gunicorn = "==20.1.0"
+django-avatar = "*"
+django-drip-campaigns = "*"
+growthbook = "*"
+python3-saml = "*"
+bjoern = "*"
+
+[requires]
+python_version = "3.8"

@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "auth.fullname" . }}
+  labels:
+{{ include "auth.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "auth.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "auth.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        timestamp: {{ .Values.timestamp }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: {{ .Values.staticFiles.volumeName }}
+          emptyDir: {}
+        - name: nginx-configmap
+          configMap:
+            name: {{ .Values.configMap.name }}
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: {{ .Values.container.args }}
+          env:
+            - name: SITE_ID
+              value: "1"
+            - name: DJANGO_STATIC_ROOT
+              value: {{ .Values.staticFiles.staticRoot }}
+          envFrom:
+            - secretRef:
+                name: sc-auth-config
+            - secretRef:
+                name: {{ .Values.container.dbSecret }}
+            - secretRef:
+                name: {{ .Values.container.smtpSecret }}
+          readinessProbe:
+            tcpSocket:
+              port: 8040
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Values.staticFiles.volumeName }}
+              mountPath: {{ .Values.staticFiles.staticRoot }}
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "/bin/sleep", "20" ]
+        - name: nginx
+          image: nginx
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.container.port }}
+              protocol: TCP
+            - containerPort: {{ .Values.container.portEE }}
+              protocol: TCP
+          volumeMounts:
+            - name: {{ .Values.staticFiles.volumeName }}
+              mountPath: /var/www/accounts/static/
+              readOnly: true
+            - name: nginx-configmap
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "/bin/sleep", "20" ]
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

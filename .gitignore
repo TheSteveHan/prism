@@ -178,3 +178,4 @@ datasets/
 models/
 .nginx-certbot.env
 .api-service.env
+.auth-service.env

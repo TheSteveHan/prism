@@ -1,0 +1,6 @@
+welcome_email.ck.html
+welcome_email.generated.html
+*.sqlite3
+.DS_Store
+.env
+/static/

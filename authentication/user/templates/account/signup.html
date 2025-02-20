@@ -1,0 +1,42 @@
+{% extends "registration/base.html" %}
+
+{% load i18n %}
+{% load socialaccount %}
+
+{% block head_title %}{% trans "Signup" %}{% endblock %}
+
+{% block content %}
+
+<style>
+p label{
+    display:none;
+}
+</style>
+<div id="social-signin">
+    <div style="display:flex;flex-direction:column">
+        <a href="{% provider_login_url 'google' %}" style="width:100%">
+            <img src="/accounts/static/btn_google_signin_dark_normal_web@2x.png" style="width:100%"/>
+        </a>
+    </div>
+
+    <br/>
+    <b>Or, sign up with email</b>
+</div>
+
+<form class="flexColumn center signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{redirect_field_value}}" />
+  {% endif %}
+  <button type="submit" onclick="gtag('event', 'sign_up')">{% trans "Sign Up" %}</button>
+  <br/>
+<p class="form-tip">{% blocktrans %}Already have an account? <a href="{{ login_url }}">Sign in</a>.{% endblocktrans %}</p>
+  <br/>
+  <p id="tos-container">
+  By signing up, you accept our <a href="/accounts/static/terms.html" target="_new">Term of Service</a> and <a href="/accounts/static/privacy-policy.html" target="_new">Privacy Policy</a>.
+  </p>
+  <br/>
+</form>
+
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+
+{% block content %}
+
+{% get_providers as socialaccount_providers %}
+
+<div style="margin-bottom:4px">
+    <div id="social-signin">
+        <div style="display:flex;flex-direction:column">
+            <a href="{% provider_login_url 'google' %}" style="width:100%">
+                <img src="/accounts/static/btn_google_signin_dark_normal_web@2x.png" style="width:100%"/>
+            </a>
+            <a href="{% provider_login_url 'apple' %}" id="apple-signin" style="width: 100%; margin-top: 16px">
+                <img src="/accounts/static/apple-id-minimum-corner-radii_2x.png" style="width: 100%" />
+            </a>
+        </div>
+
+        <br/>
+        <b >Or, sign in with email</b>
+    </div>
+</div>
+<form class="login" method="POST" action="{% url 'account_login' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+  <button class="primaryAction" type="submit" onclick="gtag('event', 'login')">{% trans "Sign In" %}</button>
+  <div style="display:flex;justify-content:space-between;margin-top:10px">
+ {% blocktrans %}<a href="{{ signup_url}}">Sign up</a>{% endblocktrans %}
+  <a class="button secondaryAction" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+  </div>
+<br/>
+</form>
+
+{% endblock %}

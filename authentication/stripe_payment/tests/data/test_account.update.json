@@ -1,0 +1,162 @@
+{
+    "type": "account.updated",
+    "account": "acc",
+    "data":{
+        "object": {
+            "business_profile": {
+                "mcc": "5734",
+                "name": null,
+                "support_address": {
+                    "city": "XXXX",
+                    "country": "US",
+                    "line1": "YYYYY",
+                    "line2": null,
+                    "postal_code": "02451",
+                    "state": "MA"
+                },
+                "support_email": null,
+                "support_phone": "+11234567890",
+                "support_url": null,
+                "url": "bloomscroll.com"
+            },
+            "capabilities": {
+                "acss_debit_payments": "active",
+                "affirm_payments": "active",
+                "afterpay_clearpay_payments": "active",
+                "bancontact_payments": "active",
+                "card_payments": "active",
+                "cartes_bancaires_payments": "pending",
+                "eps_payments": "active",
+                "giropay_payments": "active",
+                "ideal_payments": "active",
+                "link_payments": "active",
+                "p24_payments": "active",
+                "sepa_debit_payments": "active",
+                "sofort_payments": "active",
+                "transfers": "active",
+                "us_bank_account_ach_payments": "active"
+            },
+            "charges_enabled": true,
+            "controller": {
+                "is_controller": true,
+                "type": "application"
+            },
+            "country": "US",
+            "created": 1679534629,
+            "default_currency": "usd",
+            "details_submitted": true,
+            "email": "testemail@gmail.com",
+            "external_accounts": {
+                "data": [
+                    {
+                        "account": "acct_1MocsaQwuHvndIzE",
+                        "account_holder_name": null,
+                        "account_holder_type": null,
+                        "account_type": null,
+                        "available_payout_methods": [
+                            "standard"
+                        ],
+                        "bank_name": "STRIPE TEST BANK",
+                        "country": "US",
+                        "currency": "usd",
+                        "default_for_currency": true,
+                        "fingerprint": "cFQ19v5f8Lnms7pG",
+                        "future_requirements": {
+                            "currently_due": [],
+                            "errors": [],
+                            "past_due": [],
+                            "pending_verification": []
+                        },
+                        "id": "ba_1Mod0vQwuHvndIzEFSqUDxaO",
+                        "last4": "6789",
+                        "metadata": {},
+                        "object": "bank_account",
+                        "requirements": {
+                            "currently_due": [],
+                            "errors": [],
+                            "past_due": [],
+                            "pending_verification": []
+                        },
+                        "routing_number": "110000000",
+                        "status": "new"
+                    }
+                ],
+                "has_more": false,
+                "object": "list",
+                "total_count": 1,
+                "url": "/v1/accounts/acct_1MocsaQwuHvndIzE/external_accounts"
+            },
+            "future_requirements": {
+                "alternatives": [],
+                "current_deadline": null,
+                "currently_due": [],
+                "disabled_reason": null,
+                "errors": [],
+                "eventually_due": [],
+                "past_due": [],
+                "pending_verification": []
+            },
+            "id": "acc",
+            "metadata": {},
+            "object": "account",
+            "payouts_enabled": true,
+            "requirements": {
+                "alternatives": [],
+                "current_deadline": null,
+                "currently_due": [],
+                "disabled_reason": null,
+                "errors": [],
+                "eventually_due": [],
+                "past_due": [],
+                "pending_verification": []
+            },
+            "settings": {
+                "bacs_debit_payments": {},
+                "branding": {
+                    "icon": null,
+                    "logo": null,
+                    "primary_color": null,
+                    "secondary_color": null
+                },
+                "card_issuing": {
+                    "tos_acceptance": {
+                        "date": null,
+                        "ip": null
+                    }
+                },
+                "card_payments": {
+                    "decline_on": {
+                        "avs_failure": true,
+                        "cvc_failure": true
+                    },
+                    "statement_descriptor_prefix": "SDXXX",
+                    "statement_descriptor_prefix_kana": null,
+                    "statement_descriptor_prefix_kanji": null
+                },
+                "dashboard": {
+                    "display_name": "Bloom Scroll",
+                    "timezone": "Etc/UTC"
+                },
+                "payments": {
+                    "statement_descriptor": "STATEMENT DESC",
+                    "statement_descriptor_kana": null,
+                    "statement_descriptor_kanji": null
+                },
+                "payouts": {
+                    "debit_negative_balances": true,
+                    "schedule": {
+                        "delay_days": 2,
+                        "interval": "daily"
+                    },
+                    "statement_descriptor": null
+                },
+                "sepa_debit_payments": {}
+            },
+            "tos_acceptance": {
+                "date": 1679535225
+            },
+            "type": "standard"
+        }
+    }
+
+}

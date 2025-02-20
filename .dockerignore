@@ -5,3 +5,4 @@ models/
 *.vec
 *.vec.zip
 *.bin
+.*.env
