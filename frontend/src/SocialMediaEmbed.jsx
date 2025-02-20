@@ -31,7 +31,7 @@ const SocialMediaEmbed = ({ post }) => {
       setElm(<EmbedElm url={uri} width={320}/>)
     }, 1000)
     setElm(null)
-  }, [post])
+  }, [post, uri])
 
   return elm? (
     <div>

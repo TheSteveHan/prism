@@ -48,7 +48,7 @@ function LabelWidget({
       return v
     })
     e.stopPropagation()
-  }, [onChange])
+  }, [onChange, idx])
 
   const onDragStart = useCallback((e) => {
     draggingRef.current = true
@@ -65,7 +65,7 @@ function LabelWidget({
   const onDragEnd = useCallback((e) => {
     draggingRef.current = false
     //updateValue(e)
-  }, [updateValue])
+  }, [])
 
   useEffect(()=>{
     setNewVal(value)

@@ -7,13 +7,9 @@ import "./Dashboard.css"
 import 'chartjs-adapter-moment';
 import {Chart, TimeScale,LinearScale, PointElement, LineElement, Tooltip, Legend} from "chart.js";
 Chart.register(LinearScale, PointElement, LineElement, Tooltip, Legend, TimeScale);
-import OpsNav from './OpsNav'
 
 
 const SOCIAL_DOMAINS = ["youtube.com", "youtu.be", "tiktok.com", "instagram.com", "facebook.com", "linkedin.com"];
-let USER_TOKEN = localStorage.getItem('user-token')
-axios.defaults.headers.common['Authorization'] = `JWT ${USER_TOKEN}`;
-
 const E_SCALE_COLOR = "rgba(255,64,64,1)"
 const I_SCALE_COLOR = "rgba(255,128,64,1)"
 const A_SCALE_COLOR = "rgba(128,128,255,1)"
@@ -164,7 +160,6 @@ export default function Review() {
       justifyContent:"flex-start",
       height:"100%"
     }}>
-      <OpsNav/>
       <div style={{
         justifyContent:"flex-start", gap: 16, textAlign:"left", 
         alignItems:"flex-start",
@@ -172,7 +167,7 @@ export default function Review() {
         overflowY:"auto", padding:16,
       }}>
         {false&&posts.map(p=>
-        <a href={p.uri} style={{
+        <a key={p.uri} href={p.uri} style={{
           cursor:"pointer", color:"white", textDecoration:"none", 
           }}><div key={p.id} style={{
           height:600, width:320, overflow:"hidden", textWrap:"wrap", backgroundColor:"#333", 
@@ -180,7 +175,7 @@ export default function Review() {
         }}>
           View on {toCap(p.uri?.split(".")[1])}
 </div></a>)}
-  {stats&& <div style={{ fontFamily: 'Arial, sans-serif', margin: '20px' ,margin:"auto"}}>
+  {stats&& <div style={{ fontFamily: 'Arial, sans-serif', margin:"auto"}}>
     <h1 style={{ color: '#EEE' }}>Bloom Feed Stats</h1>
     <div style={{display:"flex", gap:16, marginBottom:16}}>
       <div className="statsTile">

@@ -134,20 +134,17 @@ function App() {
       <div style={{flex:1, display:"flex", flexWrap:"wrap", gap:16, justifyContent:"center", alignItems:"center",
       overflowY:"auto", overflowX:"hidden"}}>
       {
-        results.map(r=><div style={{height:"18ch", width:"35ch", textAlign:"left", 
+        results.map(r=><div key={r.point.idx} style={{height:"18ch", width:"35ch", textAlign:"left", 
           backgroundColor:"rgba(255,255,255,0.1)", padding:"12px 16px", borderRadius: 8}}>
           {embeddings[r.point.idx].text}
-          {false&&
-          <Spritz text={embeddings[r.point.idx].text} wpm={800}/>
-          }
         </div>)
       }
       </div>
       <div style={{flex:0, maxHeight: "38.2vh"}}>
         <div style={{display: "flex", flexDirection:"row", gap: 16, justifyContent:"space-between", flexWrap:"wrap"}}>
-          {histograms.map((ent,idx)=><div>
-            <div style={{display:"flex", height: 80, alignItems:"flex-end"}}>
-            {ent.bins.map(val=><div style={{height: `${val*100}%`, flex:1, backgroundColor: "rgba(255,255,255,0.3)"}}></div>)}
+          {histograms.map((ent,idx)=><div key={idx}>
+            <div key={idx} style={{display:"flex", height: 80, alignItems:"flex-end"}}>
+            {ent.bins.map(val=><div key={val} style={{height: `${val*100}%`, flex:1, backgroundColor: "rgba(255,255,255,0.3)"}}></div>)}
             </div>
             <div style={{display:"flex", justifyContent:"space-between", fontSize:8, width:"100%"}}>
               <div>

@@ -293,7 +293,7 @@ function CandidateLink({link}){
         setChecking(false)
       })
     }
-  }, [])
+  }, [link, url])
   return <div>
   <a href={url} target="_blank" rel="noopener noreferrer" style={{ 
     textDecoration: "underline", color: isValid?"#8888ff":"#ff8888", opacity: checking? 0.3:1}} >
@@ -304,7 +304,6 @@ function CandidateLink({link}){
   </div>
 </div>
 }
-let USER_TOKEN = localStorage.getItem('user-token')
 export default function ExtractLinks() {
   const [richText, setRichText] = useState("");
   const [csvMode, setCsvMode] = useState(false)

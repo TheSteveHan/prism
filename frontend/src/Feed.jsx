@@ -141,7 +141,7 @@ function PostCard({p, idx, onShow}){
       // reset new labels
       newLabelsRef.current=[null, null, null]
     }
-  }, [idx, p])
+  }, [idx, p, onShow])
 
   useLayoutEffect(() => {
     if(elmRef.current){
@@ -261,7 +261,7 @@ function FeedControl({value, setValue}){
         ); // Add a rectangle to the current path
       }
     }
-  }, [value])
+  }, [])
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d')
@@ -346,7 +346,7 @@ function FeedControl({value, setValue}){
         canvas.removeEventListener('wheel', handleWheel);
         canvas.addEventListener('click', handleClick);
     }
-  }, [])
+  }, [redraw, setValue])
 
   useLayoutEffect(() => {
     redraw()
@@ -444,11 +444,6 @@ function App() {
 
   }, [searchTerm, sortedPosts])
 
-  const onChangeELvl = useCallback((e) => {
-    const newVal = e.target.value
-    setELvl(newVal)
-  }, [])
-
   const onShow = useCallback((postIdx)=>{
     setItemIdx(postIdx)
     lastShownItemIdxRef.current = postIdx
@@ -499,7 +494,7 @@ function App() {
       {
 
       displayedPosts.map(
-        (p,idx)=><PostCard p={p} idx={idx} onShow={onShow}/>)
+        (p,idx)=><PostCard key={p.id} p={p} idx={idx} onShow={onShow}/>)
       }
       </div>
       <div style={{overflowX:"visible",marginBottom: 8, width:"100%", display:"flex", justifyContent:"space-between"}}>

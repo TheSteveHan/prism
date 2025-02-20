@@ -27,7 +27,7 @@ export default function Keywords({posts}){
 
   return <div style={{display:"flex", flexWrap:"wrap", gap:"4px 8px"}}>
   {
-    keywords.map((w)=><div title={w.count}>{w.word}</div>)
+    keywords.map((w)=><div key={w.word} title={w.count}>{w.word}</div>)
   }
 </div>
 
