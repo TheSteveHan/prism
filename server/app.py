@@ -10,6 +10,7 @@ from .database import Post, Label, PostSubmission, PostModality, upsert_ignore_c
 from .post_fetcher import fetch_posts_for_label, post_fetching_worker
 from flask import jsonify, request
 from .state import SERVER_STATE
+from .auth import get_user_from_request
 from sqlalchemy.sql import func
 from sqlalchemy.orm import aliased
 import time
@@ -43,35 +44,12 @@ def start_streamer():
 def get_server_state():
     return jsonify(SERVER_STATE)
 
-@app.route('/api/auth/stateless-user', methods=['POST'])
-def generate_user():
-    uid = generate()
-    encoded_jwt = jwt.encode({"uid": uid, "t": time.time()}, JWT_KEY, algorithm="HS256")
-    return jsonify({
-        'token': encoded_jwt
-    }), 200
-
-def get_user():
-    auth_header = request.headers.get("Authorization", "")
-    parts = auth_header.split(' ')
-    if len(parts) != 2:
-        return None
-    if parts[0] != "JWT":
-        return None
-    try:
-        token = jwt.decode(parts[1], JWT_KEY, algorithms=["HS256"])
-        return token['uid']
-    except Exception:
-        return None
-
 @app.route('/api/posts/submit', methods=['POST'])
 def submit_posts():
-    user = get_user()
-    if not user:
-        return "Log in required", 403
+    user = get_user_from_request()
     subs = [
         PostSubmission(
-            uri=entry['uri'], submitter=user,
+            uri=entry['uri'], submitter=user['user_id'],
             text=entry.get('text'),
             videos=entry.get('videos')
         )
@@ -82,9 +60,9 @@ def submit_posts():
 
 @app.route('/api/posts/submissions', methods=['GET'])
 def show_submissions():
-    user = get_user()
-    if not user:
-        return "Log in required", 403
+    user = get_user_from_request()
+    if not user.get('is_staff'):
+        return "", 403
     submissions = PostSubmission.query.filter(
         PostSubmission.reviewed_at==None
     ).order_by(
@@ -94,9 +72,9 @@ def show_submissions():
 
 @app.route('/api/posts/submissions/review/<sid>', methods=['POST'])
 def approve_submission(sid):
-    user = get_user()
-    if not user:
-        return "Log in required", 403
+    user = get_user_from_request()
+    if not user.get('is_staff'):
+        return "", 403
     submission = PostSubmission.query.filter(
         PostSubmission.id==sid
     ).first()
@@ -109,7 +87,7 @@ def approve_submission(sid):
     for label in data:
         new_label = Label(
             confidence=1, post_id=post.id, label_type=label['label_type'], value=label['value'],
-            src=user, comment=label.get('comment')
+            src=user['user_id'], comment=label.get('comment')
         )
         if new_label.label_type==4:
             if new_label.value== 0:
@@ -156,6 +134,9 @@ def get_recent_videos():
 
 @app.route('/api/posts/all-videos', methods=['GET'])
 def get_all_videos():
+    user = get_user_from_request()
+    if not user.get('is_staff'):
+        return "", 403
     posts = Post.query.filter(
         Post.approved==True,
         Post.modality==PostModality.VIDEO).order_by(

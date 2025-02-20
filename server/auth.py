@@ -1,41 +1,81 @@
-from atproto import DidInMemoryCache, IdResolver, verify_jwt
-from atproto.exceptions import TokenInvalidSignatureError
-from flask import Request
+import os
+import requests
+from .settings import app, db
+from flask import request, make_response
+from expiringdict import ExpiringDict
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+TOKEN_CACHE = ExpiringDict(max_len=10000, max_age_seconds=300)
+
+AUTH_SERVER = os.environ.get('AUTH_SERVER', 'localhost:8000')
+
+class AuthenticationError(Exception):
+    def __init__(self, headers, body, status):
+        super()
+        self.headers = headers
+        self.body = body
+        self.status = status
+
+def _get_user_profile_from_auth():
+    res = {}
+    token = request.headers.get('Authorization')
+    if not token:
+        if not request.cookies.get("sessionid", None):
+            raise AuthenticationError({}, "Permission Denied", 403)
+        if token in TOKEN_CACHE:
+            return TOKEN_CACHE[token]
+        resp = requests.get(f"http://{AUTH_SERVER}/api/user/profile/", cookies=request.cookies)
+    else:
+        cached_user = TOKEN_CACHE.get(token, None)
+        if cached_user:
+            return cached_user
+        headers ={
+            'Authorization': f"{token}"
+        }
+        resp = requests.get(f"http://{AUTH_SERVER}/api/user/profile/", headers=headers)
+    if not resp.ok:
+        resp.close()
+        raise AuthenticationError(resp.headers, resp.text, resp.status_code)
+    res = resp.json()
+    resp.close()
+    if token:
+        TOKEN_CACHE[token] = res
+    return res
 
 
-_CACHE = DidInMemoryCache()
-_ID_RESOLVER = IdResolver(cache=_CACHE)
+def _get_user_from_request(create_if_new=True):
+    res = _get_user_profile_from_auth()
+    if not res:
+        return None
+    res["user_id"] = str(res['user_id'])
+    res["id"] = None
+    return res
 
-_AUTHORIZATION_HEADER_NAME = 'Authorization'
-_AUTHORIZATION_HEADER_VALUE_PREFIX = 'Bearer '
-
-
-class AuthorizationError(Exception):
-    ...
-
-
-def validate_auth(request: 'Request') -> str:
-    """Validate authorization header.
-
-    Args:
-        request: The request to validate.
-
-    Returns:
-        :obj:`str`: Requester DID.
-
-    Raises:
-        :obj:`AuthorizationError`: If the authorization header is invalid.
-    """
-    auth_header = request.headers.get(_AUTHORIZATION_HEADER_NAME)
-    if not auth_header:
-        raise AuthorizationError('Authorization header is missing')
-
-    if not auth_header.startswith(_AUTHORIZATION_HEADER_VALUE_PREFIX):
-        raise AuthorizationError('Invalid authorization header')
-
-    jwt = auth_header[len(_AUTHORIZATION_HEADER_VALUE_PREFIX) :].strip()
-
+def get_user_from_request(return_none=False, create_if_new=True):
     try:
-        return verify_jwt(jwt, _ID_RESOLVER.did.resolve_atproto_key).iss
-    except TokenInvalidSignatureError as e:
-        raise AuthorizationError('Invalid signature') from e
+        return _get_user_from_request(create_if_new)
+    except AuthenticationError as e:
+        if not return_none:
+            raise e
+        return None
+
+def _get_checkout_url(params):
+    res = requests.post(
+        f'http://{AUTH_SERVER}/internal/api/billing/stripe/start-checkout-for-product',
+        json=params
+    )
+    if not res.ok:
+        logger.exception(f"Failed to checkout. {res.status_code} {res.content}")
+        return None
+    return res.json()['url']
+
+def get_checkout_url(params):
+    # call the local verison here so we can mock it in test
+    return _get_checkout_url(params)
+
+@app.errorhandler(AuthenticationError)
+def handle_auth_error(e):
+    response = make_response(e.body, e.status)
+    response.headers["Content-Type"] = "application/json"
+    return response

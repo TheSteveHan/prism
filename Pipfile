@@ -23,6 +23,7 @@ flask-caching = "*"
 flask-admin = {extras = ["sqlalchemy"], version = "*"}
 pyjwt = "*"
 nanoid = "*"
+expiringdict = "*"
 
 [dev-packages]
 
