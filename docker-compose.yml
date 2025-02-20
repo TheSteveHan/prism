@@ -9,7 +9,7 @@ services:
       - 443:443
     volumes:                                    # Storage can be either a
       - nginx_secrets:/etc/letsencrypt          # Docker managed volume (see list at the bottom)
-      - auth_static_files:/var/www/auth
+      - auth_static_files:/var/www-auth
   api-service:
     image: 651706751476.dkr.ecr.us-east-2.amazonaws.com/bloom/prism-api-service
     restart: always 

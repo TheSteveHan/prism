@@ -1,6 +1,8 @@
 #/bin/bash
 set -ex
-yarn build
+if [ -z "${NGINX_ONLY}" ]; then
+    yarn build
+fi
 REGISTRY=651706751476.dkr.ecr.us-east-2.amazonaws.com
 aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $REGISTRY 
 docker build -t bloom/prism-nginx .

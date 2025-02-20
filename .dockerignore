@@ -6,3 +6,5 @@ models/
 *.vec.zip
 *.bin
 .*.env
+.env
+.DS_Store

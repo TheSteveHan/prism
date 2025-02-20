@@ -4,6 +4,7 @@ python ./manage.py migrate
 
 # deploy the static files
 python ./manage.py collectstatic --no-input --clear
+cp -rf static/* shared-static-files/
 
 export ANALYTICS_SERVER=api-service
 export SEND_DRIP=1
