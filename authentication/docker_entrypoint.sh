@@ -2,9 +2,6 @@
 set -ex
 python ./manage.py migrate
 
-# clear out expired JWT tokens
-python ./manage.py flushexpiredtokens
-
 # deploy the static files
 python ./manage.py collectstatic --no-input --clear
 
