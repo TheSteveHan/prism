@@ -20,6 +20,7 @@ import Submission from './Submission.jsx'
 import Review from './Review.jsx'
 import Dashboard from './Dashboard.jsx'
 import Nav from 'components/Nav'
+import PrivateView from 'components/PrivateView'
 
 const mapDispatch = { getTokens, getUserProfile, setTokens, logout }
 
@@ -48,9 +49,9 @@ const AppContent = connect(
     <Nav/>
     <Routes>
       <Route path="/" element={<Feed />} />
-      <Route path="/ops/submit" element={<Submission />} />
-      <Route path="/ops/review" element={<Review />} />
-      <Route path="/ops/dashboard" element={<Dashboard/>} />
+      <Route path="/ops/submit" element={<PrivateView view={Submission}/>} />
+      <Route path="/ops/review" element={<PrivateView view={Review} /> } />
+      <Route path="/ops/dashboard" element={<PrivateView view={Dashboard} /> } />
     </Routes>
   </BrowserRouter> 
 </>

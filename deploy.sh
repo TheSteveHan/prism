@@ -1,4 +1,4 @@
-#/bin/bash
+set -ex
 REGISTRY=651706751476.dkr.ecr.us-east-2.amazonaws.com
 APP=api-service
 aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $REGISTRY 
